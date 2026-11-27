@@ -17,6 +17,7 @@
 ![CloudFront](https://img.shields.io/badge/CloudFront-S3%20%2B%20HTTPS-8C4FFF?logo=amazonwebservices&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
 ![OIDC](https://img.shields.io/badge/AWS%20auth-OIDC%2C%20no%20stored%20keys-232F3E)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Live demo: https://dzo4l1wjzweva.cloudfront.net/**
 
@@ -188,3 +189,7 @@ The workflow authenticates with **GitHub OIDC** instead of long-lived access key
 - Authentication is deferred for this MVP. Both chat endpoints are public and spend OpenAI tokens, so keep a monthly budget limit in the OpenAI dashboard. The cheapest next step if the endpoints get abused is a rate-based AWS WAF rule on the two distributions.
 - Model answers are rendered with `react-markdown`, which does not render raw HTML, so an answer can't inject markup or scripts.
 - The orchestrator shares one MCP session (and rate-limit budget) across all users.
+
+## License
+
+[MIT](LICENSE)
