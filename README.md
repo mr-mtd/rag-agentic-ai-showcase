@@ -4,6 +4,20 @@
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazonwebservices&logoColor=white)
+![Node 22](https://img.shields.io/badge/Node-22-5FA04E?logo=nodedotjs&logoColor=white)
+![Vitest](https://img.shields.io/badge/tested%20with-Vitest-6E9F18?logo=vitest&logoColor=white)
+![Testing Library](https://img.shields.io/badge/React%20Testing%20Library-E33332?logo=testinglibrary&logoColor=white)
+![Markdown GFM](https://img.shields.io/badge/Markdown-GFM-000000?logo=markdown&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/backend-Spring%20Boot-6DB33F?logo=springboot&logoColor=white)
+![Spring AI](https://img.shields.io/badge/Spring%20AI-2.1-6DB33F?logo=spring&logoColor=white)
+![OpenAI](https://img.shields.io/badge/LLM-OpenAI-412991?logo=openai&logoColor=white)
+![MCP](https://img.shields.io/badge/agentic-MCP%20tools-000000)
+![Qdrant](https://img.shields.io/badge/Qdrant-hybrid%20search%20%2B%20RRF-DC244C)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-RDS-4169E1?logo=postgresql&logoColor=white)
+![CloudFront](https://img.shields.io/badge/CloudFront-S3%20%2B%20HTTPS-8C4FFF?logo=amazonwebservices&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![OIDC](https://img.shields.io/badge/AWS%20auth-OIDC%2C%20no%20stored%20keys-232F3E)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Live demo: https://dzo4l1wjzweva.cloudfront.net/**
 
@@ -175,3 +189,7 @@ The workflow authenticates with **GitHub OIDC** instead of long-lived access key
 - Authentication is deferred for this MVP. Both chat endpoints are public and spend OpenAI tokens, so keep a monthly budget limit in the OpenAI dashboard. The cheapest next step if the endpoints get abused is a rate-based AWS WAF rule on the two distributions.
 - Model answers are rendered with `react-markdown`, which does not render raw HTML, so an answer can't inject markup or scripts.
 - The orchestrator shares one MCP session (and rate-limit budget) across all users.
+
+## License
+
+[MIT](LICENSE)
