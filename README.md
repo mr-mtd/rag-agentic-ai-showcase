@@ -1,5 +1,6 @@
 # Kafka Hybrid RAG – React Frontend
 [![Build](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/build.yml)
+[![Deploy](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/deploy.yml)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazonwebservices&logoColor=white)
@@ -36,17 +37,13 @@ Copy `.env.example` to `.env` to set these locally, then restart the dev server.
 The backend does not enable CORS. In development that doesn't matter, because the browser only talks to the Vite server and Vite forwards `/api` to the backend. A production build that calls the backend URL directly from another origin will be blocked by the browser until one of these is in place:
 
 1. **Enable CORS on the backend** for the frontend's origin (for example a `WebMvcConfigurer` that allows `POST /api/**` from the deployed site). Then set `VITE_API_BASE_URL` to the backend URL.
-2. **Serve both from one origin**, for example a CloudFront distribution with the static site as the default origin and an `/api/*` behaviour pointing at Lightsail. Then leave `VITE_API_BASE_URL` empty.
+2. **Serve both from one origin**, for example a CloudFront distribution with the static site as the default origin and an `/api/*` behaviour pointing at Lightsail. Then leave `VITE_API_BASE_URL` empty. **This is what the deployed site uses.**
 
 ## Continuous integration
 
 `.github/workflows/build.yml` runs on pushes and pull requests to `main` and `feature/dev`. It installs dependencies with `npm ci`, runs `npm run build`, and uploads `dist/` as a build artifact.
 
-The build reads `VITE_API_BASE_URL` from a **repository variable**. Set it under *Settings → Secrets and variables → Actions → Variables*:
-
-| Name | Value |
-| --- | --- |
-| `VITE_API_BASE_URL` | `https://hybrid-rag.9jn1qt7414py4.us-east-2.cs.amazonlightsail.com` |
+The build reads `VITE_API_BASE_URL` from an optional **repository variable** (*Settings → Secrets and variables → Actions → Variables*). Leave it unset: the deployed site is served from the same origin as the API (see [Deployment](#deployment)), so the app calls `/api` on its own origin.
 
 ### Production build locally
 
@@ -54,6 +51,29 @@ The build reads `VITE_API_BASE_URL` from a **repository variable**. Set it under
 npm run build     # outputs static files to dist/
 npm run preview   # serves dist/ on http://localhost:4173 with the same /api proxy
 ```
+
+## Deployment
+
+The site is live at **https://dzo4l1wjzweva.cloudfront.net**.
+
+```
+browser ──► CloudFront ──┬─ /*      ──► S3 bucket (private, Origin Access Control)
+                         └─ /api/*  ──► Lightsail backend (no caching, POST allowed)
+```
+
+- **S3** holds the built `dist/` files. The bucket blocks all public access; only this CloudFront distribution can read it.
+- **CloudFront** serves the site over HTTPS and forwards `/api/*` to the Spring Boot backend on Lightsail. Because the browser sees a single origin, the backend needs no CORS configuration.
+
+`.github/workflows/deploy.yml` runs on every push to `main` (and on demand from the Actions tab). It builds the app, syncs `dist/` to S3 (fingerprinted assets cached for a year, `index.html` always revalidated), and invalidates the CloudFront cache.
+
+### AWS access without stored keys
+
+The workflow authenticates with **GitHub OIDC** instead of long-lived access keys:
+
+1. GitHub issues the job a short-lived signed token (`permissions: id-token: write`).
+2. `aws-actions/configure-aws-credentials` exchanges it with AWS STS for temporary credentials of the IAM role `github-actions-hybrid-rag-frontend-deploy`.
+3. The role's **trust policy** only accepts tokens whose `aud` is `sts.amazonaws.com` and whose `sub` is `repo:mr-mtd/react_hybrid_RAG_frontend:ref:refs/heads/main`, so forks, pull requests and other branches can't assume it.
+4. The role's **permissions policy** allows only `s3:ListBucket`, `s3:PutObject` and `s3:DeleteObject` on the site bucket, and `cloudfront:CreateInvalidation` on this one distribution.
 
 ## API contract
 
