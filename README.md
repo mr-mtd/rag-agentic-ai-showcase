@@ -1,6 +1,6 @@
 # AI Engineering Showcase – React Frontend
-[![Build](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/build.yml)
-[![Deploy](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/mr-mtd/react_hybrid_RAG_frontend/actions/workflows/deploy.yml)
+[![Build](https://github.com/mr-mtd/rag-agentic-ai-showcase/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/mr-mtd/rag-agentic-ai-showcase/actions/workflows/build.yml)
+[![Deploy](https://github.com/mr-mtd/rag-agentic-ai-showcase/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/mr-mtd/rag-agentic-ai-showcase/actions/workflows/deploy.yml)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazonwebservices&logoColor=white)
@@ -167,7 +167,7 @@ The workflow authenticates with **GitHub OIDC** instead of long-lived access key
 
 1. GitHub issues the job a short-lived signed token (`permissions: id-token: write`).
 2. `aws-actions/configure-aws-credentials` exchanges it with AWS STS for temporary credentials of the IAM role `github-actions-hybrid-rag-frontend-deploy`.
-3. The role's **trust policy** only accepts tokens whose `aud` is `sts.amazonaws.com` and whose `sub` is `repo:mr-mtd/react_hybrid_RAG_frontend:ref:refs/heads/main` or its ID-qualified form `repo:mr-mtd@49491060/react_hybrid_RAG_frontend@1473934309:ref:refs/heads/main` (which this repo actually sends), so forks, pull requests and other branches can't assume it. **Renaming the repository changes the `sub`, so update the trust policy when you rename.**
+3. The role's **trust policy** only accepts tokens whose `aud` is `sts.amazonaws.com` and whose `sub` is `repo:mr-mtd/rag-agentic-ai-showcase:ref:refs/heads/main` or its ID-qualified form `repo:mr-mtd@49491060/rag-agentic-ai-showcase@1473934309:ref:refs/heads/main` (which this repo actually sends), so forks, pull requests and other branches can't assume it. **Renaming the repository changes the `sub`, so update the trust policy if the repo is renamed again** (it was renamed from `react_hybrid_RAG_frontend` on 2026-11-27).
 4. The role's **permissions policy** allows only `s3:ListBucket`, `s3:PutObject` and `s3:DeleteObject` on the site bucket, and `cloudfront:CreateInvalidation` on this one distribution.
 
 ## Security notes and known limits
