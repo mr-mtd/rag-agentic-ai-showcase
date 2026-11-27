@@ -39,9 +39,18 @@ The backend does not enable CORS. In development that doesn't matter, because th
 1. **Enable CORS on the backend** for the frontend's origin (for example a `WebMvcConfigurer` that allows `POST /api/**` from the deployed site). Then set `VITE_API_BASE_URL` to the backend URL.
 2. **Serve both from one origin**, for example a CloudFront distribution with the static site as the default origin and an `/api/*` behaviour pointing at Lightsail. Then leave `VITE_API_BASE_URL` empty. **This is what the deployed site uses.**
 
+## Tests
+
+```bash
+npm test             # run once
+npm run test:watch   # re-run on save
+```
+
+Tests use [Vitest](https://vitest.dev) with React Testing Library in jsdom. `src/api.test.js` covers the request the client sends and how it reports errors; `src/App.test.jsx` covers the page: submitting by button, Ctrl/⌘+Enter and example chips, the loading state, rendering answers and sources, and error messages. The backend is mocked, so tests need no network.
+
 ## Continuous integration
 
-`.github/workflows/build.yml` runs on pushes and pull requests to `main` and `feature/dev`. It installs dependencies with `npm ci`, runs `npm run build`, and uploads `dist/` as a build artifact.
+`.github/workflows/build.yml` runs on pushes and pull requests to `main` and `feature/dev`. It installs dependencies with `npm ci`, runs the tests, runs `npm run build`, and uploads `dist/` as a build artifact. The deploy workflow also runs the tests before building, so a failing test blocks a deploy.
 
 The build reads `VITE_API_BASE_URL` from an optional **repository variable** (*Settings → Secrets and variables → Actions → Variables*). Leave it unset: the deployed site is served from the same origin as the API (see [Deployment](#deployment)), so the app calls `/api` on its own origin.
 
@@ -72,7 +81,7 @@ The workflow authenticates with **GitHub OIDC** instead of long-lived access key
 
 1. GitHub issues the job a short-lived signed token (`permissions: id-token: write`).
 2. `aws-actions/configure-aws-credentials` exchanges it with AWS STS for temporary credentials of the IAM role `github-actions-hybrid-rag-frontend-deploy`.
-3. The role's **trust policy** only accepts tokens whose `aud` is `sts.amazonaws.com` and whose `sub` is `repo:mr-mtd/react_hybrid_RAG_frontend:ref:refs/heads/main`, so forks, pull requests and other branches can't assume it.
+3. The role's **trust policy** only accepts tokens whose `aud` is `sts.amazonaws.com` and whose `sub` is `repo:mr-mtd/react_hybrid_RAG_frontend:ref:refs/heads/main` or its ID-qualified form `repo:mr-mtd@49491060/react_hybrid_RAG_frontend@1473934309:ref:refs/heads/main` (which this repo actually sends, and which a renamed or recreated repo can't impersonate), so forks, pull requests and other branches can't assume it.
 4. The role's **permissions policy** allows only `s3:ListBucket`, `s3:PutObject` and `s3:DeleteObject` on the site bucket, and `cloudfront:CreateInvalidation` on this one distribution.
 
 ## API contract
