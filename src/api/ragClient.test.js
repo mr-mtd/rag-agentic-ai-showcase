@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// BASE_URL is read when api.js is first imported, so each test re-imports the
+// The base URL is read when config.js is first imported, so each test re-imports the
 // module after setting the environment it needs.
 async function loadApi(baseUrl = '') {
   vi.resetModules()
   vi.stubEnv('VITE_API_BASE_URL', baseUrl)
-  return import('./api.js')
+  return import('./ragClient.js')
 }
 
 function jsonResponse(body, init = {}) {
@@ -39,7 +39,18 @@ describe('ask', () => {
     expect(init.method).toBe('POST')
     expect(init.headers).toEqual({ 'Content-Type': 'application/json' })
     expect(JSON.parse(init.body)).toEqual({ question: 'How do I keep ordering?' })
-    expect(init.signal).toBe(signal)
+    expect(init.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('aborts the request when the caller aborts', async () => {
+    const { ask } = await loadApi('')
+    fetchMock.mockResolvedValue(jsonResponse({ answer: 'ok', sources: [] }))
+    const controller = new AbortController()
+
+    await ask('q', controller.signal)
+    controller.abort()
+
+    expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true)
   })
 
   it('prefixes VITE_API_BASE_URL and strips trailing slashes', async () => {
