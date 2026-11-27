@@ -1,155 +1,102 @@
-import { useRef, useState } from 'react'
-import { ask } from './api.js'
+import { useEffect, useRef, useState } from 'react'
+import Architecture from './features/architecture/Architecture.jsx'
+import KnowledgeAssistant from './features/knowledge/KnowledgeAssistant.jsx'
+import TransportationAssistant from './features/transportation/TransportationAssistant.jsx'
 
-const MAX_LENGTH = 4000
-
-const EXAMPLES = [
-  'How do I guarantee message ordering in Kafka?',
-  'What happens when a consumer group rebalances?',
-  'How do I enable exactly-once semantics in a Kafka producer?',
-  'Why is my Kafka consumer lag increasing?',
+// The hash (#knowledge, #transportation, #architecture) selects the tab, so tabs
+// can be linked to and the back button works, with no router and no extra
+// CloudFront rules for deep links.
+const TABS = [
+  { id: 'knowledge', label: 'Knowledge Assistant', short: 'Knowledge', Panel: KnowledgeAssistant },
+  { id: 'transportation', label: 'Transportation Assistant', short: 'Transportation', Panel: TransportationAssistant },
+  { id: 'architecture', label: 'Architecture', short: 'Architecture', Panel: Architecture },
 ]
 
+const tabFromHash = () => {
+  const id = window.location.hash.slice(1)
+  return TABS.some((t) => t.id === id) ? id : TABS[0].id
+}
+
 export default function App() {
-  const [question, setQuestion] = useState('')
-  const [asked, setAsked] = useState('')
-  const [result, setResult] = useState(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const controller = useRef(null)
+  const [active, setActive] = useState(tabFromHash)
+  const tabRefs = useRef({})
 
-  async function submit(text) {
-    const q = text.trim()
-    if (!q || loading) return
+  useEffect(() => {
+    const onHash = () => setActive(tabFromHash())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
-    controller.current?.abort()
-    controller.current = new AbortController()
-
-    setAsked(q)
-    setLoading(true)
-    setError('')
-    setResult(null)
-    try {
-      setResult(await ask(q, controller.current.signal))
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError(
-          err instanceof TypeError
-            ? 'Could not reach the backend. Is the Spring Boot service running?'
-            : err.message,
-        )
-      }
-    } finally {
-      setLoading(false)
-    }
+  function select(id, focus = false) {
+    setActive(id)
+    if (window.location.hash !== `#${id}`) window.history.pushState(null, '', `#${id}`)
+    if (focus) tabRefs.current[id]?.focus()
   }
 
-  function onSubmit(e) {
-    e.preventDefault()
-    submit(question)
-  }
-
+  // Arrow keys move between tabs, as in the WAI-ARIA tabs pattern.
   function onKeyDown(e) {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      submit(question)
-    }
-  }
-
-  function pickExample(text) {
-    setQuestion(text)
-    submit(text)
+    const i = TABS.findIndex((t) => t.id === active)
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key]
+    if (next === undefined) return
+    e.preventDefault()
+    select(TABS[(next + TABS.length) % TABS.length].id, true)
   }
 
   return (
-    <main className="page">
-      <header className="header">
-        <span className="badge">Tech demo</span>
-        <h1>Kafka Hybrid RAG</h1>
-        <p className="lede">
-          This is a tech demo application. <strong>1,000 Kafka questions and answers</strong> are
-          stored in a <strong>Qdrant</strong> vector database that supports <strong>hybrid
-          queries</strong>, combining BM25 keyword search with semantic search. The closest matches
-          are passed to an LLM, which writes an answer grounded in them.
-        </p>
-      </header>
-
-      <form className="card ask" onSubmit={onSubmit}>
-        <label htmlFor="question">Please ask a question about Kafka</label>
-        <textarea
-          id="question"
-          rows={3}
-          maxLength={MAX_LENGTH}
-          placeholder="e.g. How do I choose the number of partitions for a topic?"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={onKeyDown}
-          autoFocus
-        />
-        <div className="ask-footer">
-          <span className="hint">Ctrl/⌘ + Enter to send</span>
-          <button type="submit" disabled={loading || !question.trim()}>
-            {loading ? 'Searching…' : 'Ask'}
-          </button>
-        </div>
-      </form>
-
-      {!asked && (
-        <section className="examples">
-          <span className="examples-label">Try an example</span>
-          <div className="chips">
-            {EXAMPLES.map((ex) => (
-              <button key={ex} type="button" className="chip" onClick={() => pickExample(ex)}>
-                {ex}
+    <div className="app">
+      <header className="topbar">
+        <div className="topbar-inner">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden="true">◆</span>
+            <div>
+              <h1>AI Engineering Showcase</h1>
+              <p>Hybrid RAG and agentic MCP tool use, end to end</p>
+            </div>
+          </div>
+          <nav className="tabs" role="tablist" aria-label="Sections" onKeyDown={onKeyDown}>
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                ref={(el) => (tabRefs.current[t.id] = el)}
+                id={`tab-${t.id}`}
+                type="button"
+                role="tab"
+                aria-selected={active === t.id}
+                aria-controls={`panel-${t.id}`}
+                tabIndex={active === t.id ? 0 : -1}
+                className="tab"
+                aria-label={t.label}
+                onClick={() => select(t.id)}
+              >
+                <span className="tab-long" aria-hidden="true">{t.label}</span>
+                <span className="tab-short" aria-hidden="true">{t.short}</span>
               </button>
             ))}
-          </div>
-        </section>
-      )}
+          </nav>
+        </div>
+      </header>
 
-      {loading && (
-        <section className="card status" aria-live="polite">
-          <span className="spinner" aria-hidden="true" />
-          Running hybrid search and generating an answer…
-        </section>
-      )}
-
-      {error && (
-        <section className="card error" role="alert">
-          {error}
-        </section>
-      )}
-
-      {result && (
-        <section className="card result" aria-live="polite">
-          <p className="asked">{asked}</p>
-          <h2>Answer</h2>
-          <div className="answer">{result.answer}</div>
-
-          {result.sources?.length > 0 && (
-            <>
-              <h2>Sources</h2>
-              <ol className="sources">
-                {result.sources.map((s, i) => (
-                  <li key={s.id ?? i}>
-                    <span className="source-tag">Source {i + 1}</span>
-                    <span className="source-q">{s.question}</span>
-                    {s.id && <span className="source-id">id {s.id}</span>}
-                  </li>
-                ))}
-              </ol>
-            </>
-          )}
-        </section>
-      )}
+      <main className="page">
+        {/* Panels stay mounted so a conversation survives switching tabs. */}
+        {TABS.map(({ id, Panel }) => (
+          <section
+            key={id}
+            id={`panel-${id}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${id}`}
+            hidden={active !== id}
+          >
+            <Panel />
+          </section>
+        ))}
+      </main>
 
       <footer className="footer">
-        React frontend for the{' '}
-        <a href="https://github.com/mr-mtd/springboot_hybrid_RAG" target="_blank" rel="noreferrer">
-          Spring Boot hybrid RAG service
-        </a>
-        . Qdrant · BM25 + dense vectors · Reciprocal Rank Fusion
+        <a href="https://github.com/mr-mtd" target="_blank" rel="noreferrer">
+          github.com/mr-mtd
+        </a>{' '}
+        · Spring Boot · Spring AI · Qdrant · MCP · AWS
       </footer>
-    </main>
+    </div>
   )
 }
