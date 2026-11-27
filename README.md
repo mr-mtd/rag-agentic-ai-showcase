@@ -5,6 +5,8 @@
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?logo=amazonwebservices&logoColor=white)
 
+**Live demo: https://dzo4l1wjzweva.cloudfront.net/**
+
 A small React page for demoing the [Spring Boot hybrid RAG service](https://github.com/mr-mtd/springboot_hybrid_RAG).
 
 The backend holds **1,000 Kafka questions and answers** in a **Qdrant** vector database. Each question you ask runs a **hybrid query** (BM25 keyword search plus semantic vector search, fused with Reciprocal Rank Fusion), and the top matches are passed to an LLM that writes a grounded answer. This frontend lets you type a Kafka question, sends it to the backend's `/api/ask` endpoint, and shows the answer along with the source questions it was built from.
