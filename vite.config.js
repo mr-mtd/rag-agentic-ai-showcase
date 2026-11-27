@@ -19,5 +19,12 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: { port: 5173, proxy },
     preview: { port: 4173, proxy },
+    test: {
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.js',
+      restoreMocks: true,
+      unstubEnvs: true,
+      unstubGlobals: true,
+    },
   }
 })
