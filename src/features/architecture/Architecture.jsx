@@ -2,8 +2,8 @@ import ArchitectureDiagram from './ArchitectureDiagram.jsx'
 
 const REPOS = [
   {
-    name: 'react_hybrid_RAG_frontend',
-    url: 'https://github.com/mr-mtd/react_hybrid_RAG_frontend',
+    name: 'rag-agentic-ai-showcase',
+    url: 'https://github.com/mr-mtd/rag-agentic-ai-showcase',
     text: 'This site: React 19 and Vite, deployed to S3 and CloudFront by GitHub Actions.',
   },
   {

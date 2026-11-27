@@ -56,7 +56,7 @@ describe('App', () => {
     window.history.replaceState(null, '', '/#architecture')
     render(<App />)
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
-    for (const repo of ['react_hybrid_RAG_frontend', 'springboot_hybrid_RAG', 'springboot_mcp_orchestrator', 'springboot_MCP_server']) {
+    for (const repo of ['rag-agentic-ai-showcase', 'springboot_hybrid_RAG', 'springboot_mcp_orchestrator', 'springboot_MCP_server']) {
       expect(hrefs).toContain(`https://github.com/mr-mtd/${repo}`)
     }
   })
